@@ -18,13 +18,11 @@
             overflow: hidden;
             height: 100vh;
         }
-        /* 整体容器 */
         .app {
             width: 100vw;
             height: 100vh;
             position: relative;
         }
-        /* 视频容器 - 支持滑动动画 */
         .video-container {
             width: 100%;
             height: 100%;
@@ -36,7 +34,6 @@
         .video-container.prev {
             transform: translateY(-100%);
         }
-        /* 视频背景 */
         .video-bg {
             width: 100%;
             height: 100%;
@@ -49,7 +46,6 @@
             text-align: center;
             padding: 20px;
         }
-        /* 视频信息 - 入场动画 */
         .video-info {
             position: absolute;
             left: 15px;
@@ -69,7 +65,6 @@
             font-size: 14px;
             opacity: 0.8;
         }
-        /* 右侧按钮栏 - 逐个入场动画 */
         .btn-group {
             position: absolute;
             right: 15px;
@@ -90,7 +85,6 @@
         .action-btn:nth-child(1) { animation-delay: 0.1s; }
         .action-btn:nth-child(2) { animation-delay: 0.2s; }
         .action-btn:nth-child(3) { animation-delay: 0.3s; }
-        /* 按钮点击回弹动画 */
         .action-btn:active {
             transform: scale(0.9);
             transition: transform 0.1s ease;
@@ -103,7 +97,6 @@
         .btn-text {
             font-size: 12px;
         }
-        /* 点赞爱心爆炸特效 */
         .like-heart {
             position: absolute;
             font-size: 80px;
@@ -111,7 +104,6 @@
             pointer-events: none;
             animation: heartExplode 0.8s ease-out forwards;
         }
-        /* 底部评论区 - 逐行淡入 */
         .comment-preview {
             position: absolute;
             left: 0;
@@ -136,7 +128,6 @@
             margin-right: 8px;
             font-weight: 500;
         }
-        /* 结局页面 - 渐显动画 */
         .ending-page {
             position: absolute;
             top: 0;
@@ -181,7 +172,6 @@
             opacity: 0;
             animation: fadeInUp 0.6s ease-out 0.7s forwards;
         }
-        /* 重新开始按钮 */
         .restart-btn {
             margin-top: 30px;
             padding: 12px 30px;
@@ -199,67 +189,33 @@
             transform: scale(0.95);
             transition: transform 0.1s ease;
         }
-
-        /* 动画关键帧定义 */
         @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         @keyframes fadeInLeft {
-            from {
-                opacity: 0;
-                transform: translateX(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
         }
         @keyframes scaleIn {
-            from {
-                opacity: 0;
-                transform: scale(0.8);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
         }
         @keyframes heartExplode {
-            0% {
-                opacity: 1;
-                transform: scale(0.5);
-            }
-            50% {
-                opacity: 1;
-                transform: scale(1.2);
-            }
-            100% {
-                opacity: 0;
-                transform: scale(1.5) translateY(-50px);
-            }
+            0% { opacity: 1; transform: scale(0.5); }
+            50% { opacity: 1; transform: scale(1.2); }
+            100% { opacity: 0; transform: scale(1.5) translateY(-50px); }
         }
     </style>
 </head>
 <body>
     <div class="app">
-        <!-- 视频播放页面 -->
         <div class="video-container" id="videoPage">
-            <div class="video-bg" id="videoBg">
-                视频加载中...
-            </div>
-            
+            <div class="video-bg" id="videoBg">视频加载中...</div>
             <div class="video-info">
                 <div class="video-title" id="videoTitle"></div>
                 <div class="video-author" id="videoAuthor"></div>
             </div>
-            
             <div class="btn-group">
                 <div class="action-btn" id="likeBtn">
                     <div class="btn-icon">❤️</div>
@@ -274,12 +230,8 @@
                     <div class="btn-text">举报</div>
                 </div>
             </div>
-            
-            <div class="comment-preview" id="commentArea">
-            </div>
+            <div class="comment-preview" id="commentArea"></div>
         </div>
-        
-        <!-- 结局页面 -->
         <div class="ending-page" id="endingPage">
             <div class="ending-title" id="endingTitle"></div>
             <div class="ending-content" id="endingContent"></div>
@@ -289,198 +241,195 @@
     </div>
 
     <script>
-        // ===================== 核心变量 =====================
-        let rational = 50;   // 理性值
-        let empathy = 50;    // 共情值
-        let spread = 50;     // 传播力
-        let currentVideoIndex = 0; // 当前视频索引
-        let isAnimating = false; // 防止动画期间重复点击
+        let rational = 50;
+        let empathy = 50;
+        let spread = 50;
+        let currentVideoIndex = 0;
+        let isAnimating = false;
 
-        // ===================== 8个视频事件数据（已优化数值）=====================
+        // 电脑端拖拽用
+        let mouseDown = false;
+        let startY = 0;
+
         const videoEvents = [
-            // 事件1：外卖偷餐谣言
+            // 1 外卖偷餐谣言
             {
                 title: "某大学女生偷外卖被抓，还把外卖员骂哭了！",
                 author: "校园爆料君",
                 bgText: "模糊监控画面：女生拿走外卖盒",
                 comments: [
-                    {name: "正义使者", content: "现在的大学生素质真差！"},
-                    {name: "吃瓜群众", content: "必须曝光她，让她社死！"},
-                    {name: "理性网友", content: "等一个完整视频再骂"}
+                    {name:"正义使者",content:"现在的大学生素质真差！"},
+                    {name:"吃瓜群众",content:"必须曝光她，让她社死！"},
+                    {name:"理性网友",content:"等一个完整视频再骂"}
                 ],
                 actions: {
-                    like: {spread: +15, rational: -10, empathy: 0},
-                    comment: {spread: +5, rational: +10, empathy: 0},
-                    skip: {spread: 0, rational: 0, empathy: 0},
-                    report: {spread: -5, rational: +20, empathy: 0}
+                    like:   {spread:+15, rational:-10, empathy:0},
+                    comment:{spread:+5,  rational:+10, empathy:0},
+                    skip:   {spread:0,   rational:0,   empathy:0},
+                    report: {spread:-5,  rational:+20, empathy:0}
                 }
             },
-            // 事件2：贫困生用苹果手机
+            // 2 贫困生苹果手机（重点：共情+很多，理性+很少）
             {
                 title: "拿着助学金买最新款苹果，真不要脸！",
                 author: "正能量博主",
                 bgText: "学生拿着苹果手机走在校园里",
                 comments: [
-                    {name: "愤怒的纳税人", content: "助学金就该取消！"},
-                    {name: "过来人", content: "也许是家人省吃俭用买的"},
-                    {name: "中立派", content: "不好说，别太早下结论"}
+                    {name:"愤怒纳税人",content:"助学金就该取消！"},
+                    {name:"过来人",content:"也许是家人省吃俭用买的"},
+                    {name:"中立派",content:"不好说，别太早下结论"}
                 ],
                 actions: {
-                    like: {spread: +15, rational: 0, empathy: -15},
-                    comment: {spread: +5, rational: +5, empathy: +15},
-                    skip: {spread: 0, rational: 0, empathy: 0},
-                    report: {spread: 0, rational: +10, empathy: +10}
+                    like:   {spread:+15, rational:0,  empathy:-15},
+                    comment:{spread:+5,  rational:+2,  empathy:+18}, // 理性+2，共情+18
+                    skip:   {spread:0,   rational:0,  empathy:0},
+                    report: {spread:0,   rational:+10, empathy:+10}
                 }
             },
-            // 事件3：AI生成假新闻
+            // 3 AI假新闻
             {
                 title: "某地发生地震，已造成100人死亡！",
                 author: "突发新闻",
                 bgText: "地震现场画面（注意：手指畸形，AI生成痕迹明显）",
                 comments: [
-                    {name: "祈福者", content: "太可怕了，希望平安🙏"},
-                    {name: "AI识别专家", content: "这是AI生成的假新闻！"},
-                    {name: "谨慎网友", content: "等官方通报"}
+                    {name:"祈福者",content:"太可怕了，希望平安🙏"},
+                    {name:"AI识别专家",content:"这是AI生成的假新闻！"},
+                    {name:"谨慎网友",content:"等官方通报"}
                 ],
                 actions: {
-                    like: {spread: +20, rational: -20, empathy: 0},
-                    comment: {spread: +10, rational: +20, empathy: 0},
-                    skip: {spread: 0, rational: -5, empathy: 0},
-                    report: {spread: -5, rational: +25, empathy: 0}
+                    like:   {spread:+20, rational:-20, empathy:0},
+                    comment:{spread:+10, rational:+20, empathy:0},
+                    skip:   {spread:0,   rational:-5,  empathy:0},
+                    report: {spread:-5,  rational:+25, empathy:0}
                 }
             },
-            // 事件4：校园霸凌视频
+            // 4 校园霸凌（评论：理性+5，共情+20）
             {
                 title: "帮我转发让她们火！校园霸凌零容忍！",
                 author: "正义曝光",
                 bgText: "几个女生围殴一个女生（未打码）",
                 comments: [
-                    {name: "暴怒网友", content: "必须人肉她们！"},
-                    {name: "法律爱好者", content: "请打码保护受害者，报警处理"},
-                    {name: "旁观者", content: "太可怕了，现在的孩子怎么了"}
+                    {name:"暴怒网友",content:"必须人肉她们！"},
+                    {name:"法律爱好者",content:"请打码保护受害者，报警处理"},
+                    {name:"旁观者",content:"太可怕了，现在的孩子怎么了"}
                 ],
                 actions: {
-                    like: {spread: +20, rational: -10, empathy: +5},
-                    comment: {spread: +5, rational: +5, empathy: +15}, // 已优化：理性+15→+5
-                    skip: {spread: 0, rational: 0, empathy: -10},
-                    report: {spread: 0, rational: +10, empathy: +10}
+                    like:   {spread:+20, rational:-10, empathy:+5},
+                    comment:{spread:+5,  rational:+5,  empathy:+20},
+                    skip:   {spread:0,   rational:0,   empathy:-10},
+                    report: {spread:0,   rational:+10, empathy:+10}
                 }
             },
-            // 事件5：算法歧视推送
+            // 5 算法歧视（评论：理性+5，共情+15）
             {
                 title: "女生就该在家带孩子，读那么多书没用",
                 author: "传统价值观",
                 bgText: "家庭主妇做饭的画面",
                 comments: [
-                    {name: "传统派", content: "说得对，女人最终还是要回归家庭"},
-                    {name: "女权主义者", content: "这是赤裸裸的性别歧视！"},
-                    {name: "中立者", content: "每个人都有选择自己生活的权利"}
+                    {name:"传统派",content:"说得对，女人最终还是要回归家庭"},
+                    {name:"女权主义者",content:"这是赤裸裸的性别歧视！"},
+                    {name:"中立者",content:"每个人都有选择自己生活的权利"}
                 ],
                 actions: {
-                    like: {spread: +10, rational: -15, empathy: 0},
-                    comment: {spread: +5, rational: +5, empathy: +10}, // 已优化：理性+15→+5
-                    skip: {spread: -10, rational: +20, empathy: 0},
-                    report: {spread: 0, rational: +20, empathy: +10}
+                    like:   {spread:+10, rational:-15, empathy:0},
+                    comment:{spread:+5,  rational:+5,  empathy:+15},
+                    skip:   {spread:-10, rational:+20, empathy:0},
+                    report: {spread:0,   rational:+20, empathy:+10}
                 }
             },
-            // 事件6：正能量志愿者视频
+            // 6 正能量志愿者（评论：理性+0，共情+20）
             {
                 title: "大学生志愿者在灾区帮助受灾群众",
                 author: "青春正能量",
                 bgText: "志愿者们搬运物资、帮助老人的画面",
                 comments: [
-                    {name: "点赞党", content: "这才是中国青年该有的样子！"},
-                    {name: "感动者", content: "看哭了，向他们学习"},
-                    {name: "质疑者", content: "摆拍吧？"}
+                    {name:"点赞党",content:"这才是中国青年该有的样子！"},
+                    {name:"感动者",content:"看哭了，向他们学习"},
+                    {name:"质疑者",content:"摆拍吧？"}
                 ],
                 actions: {
-                    like: {spread: +15, rational: 0, empathy: +10},
-                    comment: {spread: +5, rational: 0, empathy: +15},
-                    skip: {spread: 0, rational: 0, empathy: -5},
-                    report: {spread: 0, rational: 0, empathy: 0}
+                    like:   {spread:+15, rational:0,  empathy:+10},
+                    comment:{spread:+5,  rational:0,  empathy:+20}, // 理性不加
+                    skip:   {spread:0,   rational:0,  empathy:-5},
+                    report: {spread:0,   rational:0,  empathy:0}
                 }
             },
-            // 事件7：标题党营销号
+            // 7 标题党（划走：理性-5）
             {
                 title: "震惊！喝白开水会致癌！99%的人都不知道！",
                 author: "健康养生专家",
                 bgText: "一杯白开水的特写",
                 comments: [
-                    {name: "恐慌者", content: "完了，我天天喝白开水"},
-                    {name: "科普达人", content: "这是谣言，毫无科学依据"},
-                    {name: "理性人", content: "营销号为了流量什么都敢说"}
+                    {name:"恐慌者",content:"完了，我天天喝白开水"},
+                    {name:"科普达人",content:"这是谣言，毫无科学依据"},
+                    {name:"理性人",content:"营销号为了流量什么都敢说"}
                 ],
                 actions: {
-                    like: {spread: +10, rational: -15, empathy: 0},
-                    comment: {spread: +5, rational: +15, empathy: 0},
-                    skip: {spread: 0, rational: -5, empathy: 0},
-                    report: {spread: -5, rational: +20, empathy: 0}
+                    like:   {spread:+10, rational:-15, empathy:0},
+                    comment:{spread:+5,  rational:+15, empathy:0},
+                    skip:   {spread:0,   rational:-5,  empathy:0},
+                    report: {spread:-5,  rational:+20, empathy:0}
                 }
             },
-            // 事件8：被网暴者自杀新闻
+            // 8 网暴自杀（评论：理性+5，共情+25）
             {
                 title: "之前被网暴的偷外卖女生自杀未遂，正在抢救",
                 author: "深度报道",
                 bgText: "医院大门的画面",
                 comments: [
-                    {name: "冷漠者", content: "活该，谁让她偷外卖"},
-                    {name: "反思者", content: "网络暴力杀人不眨眼啊"},
-                    {name: "道歉者", content: "对不起，我之前也骂过她"}
+                    {name:"冷漠者",content:"活该，谁让她偷外卖"},
+                    {name:"反思者",content:"网络暴力杀人不眨眼啊"},
+                    {name:"道歉者",content:"对不起，我之前也骂过她"}
                 ],
                 actions: {
-                    like: {spread: 0, rational: -20, empathy: -30},
-                    comment: {spread: +5, rational: +5, empathy: +20}, // 已优化：理性+15→+5
-                    skip: {spread: 0, rational: 0, empathy: -15},
-                    report: {spread: 0, rational: +20, empathy: +25}
+                    like:   {spread:0,   rational:-20, empathy:-30},
+                    comment:{spread:+5,  rational:+5,  empathy:+25},
+                    skip:   {spread:0,   rational:0,   empathy:-15},
+                    report: {spread:0,   rational:+20, empathy:+25}
                 }
             }
         ];
 
-        // ===================== 修复后的结局数据（已解决互斥问题）=====================
+        // 结局：圣母心优先，条件 empathy>80 && rational<60
         const endings = [
             {
-                condition: () => rational > 80 && empathy > 80 && spread > 80,
+                condition: () => rational>80 && empathy>80 && spread>80,
                 title: "🌟 数字公民",
                 content: "你不仅能准确辨别信息真伪，还能用自己的影响力传播正能量。你创建的“辟谣小分队”账号已经有了10万粉丝，帮助很多人避免了被谣言误导。",
                 slogan: "真正的数字化素养，不是拒绝互联网，而是在信息洪流中保持清醒的头脑，用技术向善，用责任发声。你就是这个时代最好的数字公民。"
             },
-            // 圣母心结局移到流量推手前面，避免被截胡
             {
-                condition: () => empathy > 80 && rational < 60,
+                condition: () => empathy>80 && rational<60,
                 title: "💔 圣母心泛滥",
                 content: "你总是轻易相信别人的话，看到任何可怜的事情都会捐款转发。但你也因此多次被骗，甚至帮骗子传播了虚假信息。你的善意被别有用心的人利用了。",
                 slogan: "善良需要带锋芒，共情需要有边界。没有理性的善良，就是另一种形式的作恶。"
             },
-            // 增加共情<60条件，和圣母心完全区分开
             {
-                condition: () => spread > 80 && rational < 40 && empathy < 60,
+                condition: () => spread>80 && rational<40 && empathy<60,
                 title: "📱 流量推手",
                 content: "你成了一个小有名气的营销号博主，靠转发各种博眼球的内容获得了大量粉丝。但你也因为传播谣言被平台多次处罚，甚至收到了法院的传票。",
                 slogan: "流量从来都不是原罪，但没有底线的流量终会反噬自己。当你把点击量看得比真相还重要时，你已经成了谣言的帮凶。"
             },
             {
-                condition: () => rational > 80 && empathy < 40,
+                condition: () => rational<60 && empathy<40,
                 title: "😐 冷漠旁观者",
                 content: "你能一眼看穿所有的谣言和套路，但你从来不会发声。你觉得“事不关己高高挂起”是最好的生存法则。但当有一天，谣言落到你自己头上时，你才发现，没有人为你说话。",
                 slogan: "沉默不是中立，而是对恶的纵容。在数字化时代，没有人能置身事外。你的一次沉默，可能就是压垮别人的最后一根稻草。"
             },
             {
-                condition: () => true, // 兜底默认结局
+                condition: () => true,
                 title: "🚶 普通路人",
                 content: "你和大多数人一样，偶尔会转发一些正能量，偶尔也会被谣言误导。你没有做过什么大好事，但也没有做过什么大坏事。你只是信息洪流中一个普通的路人。",
                 slogan: "我们大多数人都是普通路人，但普通不代表无能为力。每一次理性的点击，每一次善意的评论，都在让这个世界变得更好一点。"
             }
         ];
 
-        // ===================== 核心功能函数 =====================
-        // 加载当前视频
         function loadCurrentVideo() {
             const video = videoEvents[currentVideoIndex];
             document.getElementById('videoTitle').textContent = video.title;
             document.getElementById('videoAuthor').textContent = '@' + video.author;
             document.getElementById('videoBg').textContent = video.bgText;
-            
-            // 加载评论区
+
             const commentArea = document.getElementById('commentArea');
             commentArea.innerHTML = '';
             video.comments.forEach(comment => {
@@ -490,23 +439,20 @@
                 commentArea.appendChild(div);
             });
 
-            // 重置所有元素的动画
             const videoInfo = document.querySelector('.video-info');
             const buttons = document.querySelectorAll('.action-btn');
             const comments = document.querySelectorAll('.comment-item');
-            
+
             videoInfo.style.animation = 'none';
             buttons.forEach(btn => btn.style.animation = 'none');
             comments.forEach(cmt => cmt.style.animation = 'none');
-            
-            // 强制重绘后重新触发动画
+
             void videoInfo.offsetWidth;
             videoInfo.style.animation = '';
             buttons.forEach(btn => btn.style.animation = '');
             comments.forEach(cmt => cmt.style.animation = '');
         }
 
-        // 点赞爱心爆炸特效
         function createHeartEffect(x, y) {
             const heart = document.createElement('div');
             heart.className = 'like-heart';
@@ -514,44 +460,28 @@
             heart.style.left = x + 'px';
             heart.style.top = y + 'px';
             document.body.appendChild(heart);
-            
-            // 动画结束后移除元素
-            setTimeout(() => {
-                heart.remove();
-            }, 800);
+            setTimeout(() => heart.remove(), 800);
         }
 
-        // 处理按钮点击
         function handleAction(actionType, event) {
             if (isAnimating) return;
             isAnimating = true;
 
             const action = videoEvents[currentVideoIndex].actions[actionType];
-            
-            // 更新属性值
-            rational += action.rational;
-            empathy += action.empathy;
-            spread += action.spread;
-            
-            // 限制数值在0-100之间
-            rational = Math.max(0, Math.min(100, rational));
-            empathy = Math.max(0, Math.min(100, empathy));
-            spread = Math.max(0, Math.min(100, spread));
+            rational = Math.max(0, Math.min(100, rational + action.rational));
+            empathy = Math.max(0, Math.min(100, empathy + action.empathy));
+            spread   = Math.max(0, Math.min(100, spread + action.spread));
 
-            // 点赞时触发爱心特效
             if (actionType === 'like' && event) {
                 createHeartEffect(event.clientX, event.clientY);
             }
 
-            // 切换到下一个视频或显示结局
             currentVideoIndex++;
             if (currentVideoIndex >= videoEvents.length) {
                 showEnding();
             } else {
-                // 滑动切换动画
                 const currentPage = document.getElementById('videoPage');
                 currentPage.classList.add('prev');
-                
                 setTimeout(() => {
                     loadCurrentVideo();
                     currentPage.classList.remove('prev');
@@ -560,43 +490,30 @@
             }
         }
 
-        // 显示结局
         function showEnding() {
             document.getElementById('videoPage').style.display = 'none';
             const endingPage = document.getElementById('endingPage');
             endingPage.style.display = 'flex';
-            
-            // 触发渐显动画
-            setTimeout(() => {
-                endingPage.classList.add('show');
-            }, 100);
-            
-            // 找到匹配的结局
-            let matchedEnding = endings[4]; // 默认普通路人结局
-            for (const ending of endings) {
-                if (ending.condition()) {
-                    matchedEnding = ending;
+            setTimeout(() => endingPage.classList.add('show'), 100);
+
+            let matched = endings[4];
+            for (const e of endings) {
+                if (e.condition()) {
+                    matched = e;
                     break;
                 }
             }
-            
-            // 显示结局内容
-            document.getElementById('endingTitle').textContent = matchedEnding.title;
-            document.getElementById('endingContent').textContent = matchedEnding.content;
-            document.getElementById('endingSlogan').textContent = matchedEnding.slogan;
+            document.getElementById('endingTitle').textContent = matched.title;
+            document.getElementById('endingContent').textContent = matched.content;
+            document.getElementById('endingSlogan').textContent = matched.slogan;
         }
 
-        // 重新开始游戏
         function restartGame() {
-            rational = 50;
-            empathy = 50;
-            spread = 50;
+            rational = 50; empathy = 50; spread = 50;
             currentVideoIndex = 0;
             isAnimating = false;
-            
             const endingPage = document.getElementById('endingPage');
             endingPage.classList.remove('show');
-            
             setTimeout(() => {
                 endingPage.style.display = 'none';
                 document.getElementById('videoPage').style.display = 'block';
@@ -604,27 +521,47 @@
             }, 800);
         }
 
-        // ===================== 事件绑定 =====================
-        document.getElementById('likeBtn').addEventListener('click', (e) => handleAction('like', e));
-        document.getElementById('commentBtn').addEventListener('click', (e) => handleAction('comment', e));
-        document.getElementById('reportBtn').addEventListener('click', (e) => handleAction('report', e));
+        // ========== 事件绑定 ==========
+        document.getElementById('likeBtn').addEventListener('click', e => handleAction('like', e));
+        document.getElementById('commentBtn').addEventListener('click', e => handleAction('comment', e));
+        document.getElementById('reportBtn').addEventListener('click', e => handleAction('report', e));
         document.getElementById('restartBtn').addEventListener('click', restartGame);
 
-        // 滑动切换视频（向上滑动=划走，进入下一个视频）
-        let startY = 0;
-        document.addEventListener('touchstart', (e) => {
-            startY = e.touches[0].clientY;
+        // 移动端触屏滑动
+        document.addEventListener('touchstart', e => { startY = e.touches[0].clientY; });
+        document.addEventListener('touchend', e => {
+            const diff = startY - e.changedTouches[0].clientY;
+            if (diff > 50 && !isAnimating) handleAction('skip', null);
         });
-        document.addEventListener('touchend', (e) => {
-            const endY = e.changedTouches[0].clientY;
-            const diffY = startY - endY;
-            // 向上滑动超过50px，触发划走
-            if (diffY > 50 && !isAnimating) {
+
+        // 电脑端：鼠标拖拽上滑
+        document.addEventListener('mousedown', e => {
+            if (e.target.closest('.action-btn')) return;
+            mouseDown = true;
+            startY = e.clientY;
+        });
+        document.addEventListener('mouseup', e => {
+            if (!mouseDown) return;
+            mouseDown = false;
+            const diff = startY - e.clientY;
+            if (diff > 80 && !isAnimating) handleAction('skip', null);
+        });
+
+        // 鼠标滚轮向上 = 划走
+        document.addEventListener('wheel', e => {
+            if (e.deltaY < -50 && !isAnimating) { // 向上滚
+                e.preventDefault();
                 handleAction('skip', null);
             }
         });
 
-        // 初始化加载第一个视频
+        // 键盘↑键划走，方便测试
+        document.addEventListener('keydown', e => {
+            if (e.key === 'ArrowUp' && !isAnimating) {
+                handleAction('skip', null);
+            }
+        });
+
         loadCurrentVideo();
     </script>
 </body>
