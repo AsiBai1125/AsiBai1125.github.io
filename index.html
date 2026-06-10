@@ -33,9 +33,6 @@
             left: 0;
             transition: transform 0.3s ease-out;
         }
-        .video-container.next {
-            transform: translateY(100%);
-        }
         .video-container.prev {
             transform: translateY(-100%);
         }
@@ -93,7 +90,6 @@
         .action-btn:nth-child(1) { animation-delay: 0.1s; }
         .action-btn:nth-child(2) { animation-delay: 0.2s; }
         .action-btn:nth-child(3) { animation-delay: 0.3s; }
-        .action-btn:nth-child(4) { animation-delay: 0.4s; }
         /* 按钮点击回弹动画 */
         .action-btn:active {
             transform: scale(0.9);
@@ -185,6 +181,24 @@
             opacity: 0;
             animation: fadeInUp 0.6s ease-out 0.7s forwards;
         }
+        /* 重新开始按钮 */
+        .restart-btn {
+            margin-top: 30px;
+            padding: 12px 30px;
+            background: #ff2442;
+            border: none;
+            border-radius: 25px;
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+            transform: translateY(20px);
+            opacity: 0;
+            animation: fadeInUp 0.6s ease-out 0.9s forwards;
+        }
+        .restart-btn:active {
+            transform: scale(0.95);
+            transition: transform 0.1s ease;
+        }
 
         /* 动画关键帧定义 */
         @keyframes fadeInUp {
@@ -255,10 +269,6 @@
                     <div class="btn-icon">💬</div>
                     <div class="btn-text">评论</div>
                 </div>
-                <div class="action-btn" id="shareBtn">
-                    <div class="btn-icon">↪️</div>
-                    <div class="btn-text">划走</div>
-                </div>
                 <div class="action-btn" id="reportBtn">
                     <div class="btn-icon">🚫</div>
                     <div class="btn-text">举报</div>
@@ -274,6 +284,7 @@
             <div class="ending-title" id="endingTitle"></div>
             <div class="ending-content" id="endingContent"></div>
             <div class="ending-slogan" id="endingSlogan"></div>
+            <button class="restart-btn" id="restartBtn">重新开始</button>
         </div>
     </div>
 
@@ -285,7 +296,7 @@
         let currentVideoIndex = 0; // 当前视频索引
         let isAnimating = false; // 防止动画期间重复点击
 
-        // ===================== 8个视频事件数据 =====================
+        // ===================== 8个视频事件数据（已优化数值）=====================
         const videoEvents = [
             // 事件1：外卖偷餐谣言
             {
@@ -350,7 +361,7 @@
                 ],
                 actions: {
                     like: {spread: +20, rational: -10, empathy: +5},
-                    comment: {spread: +5, rational: +15, empathy: +15},
+                    comment: {spread: +5, rational: +5, empathy: +15}, // 已优化：理性+15→+5
                     skip: {spread: 0, rational: 0, empathy: -10},
                     report: {spread: 0, rational: +10, empathy: +10}
                 }
@@ -367,7 +378,7 @@
                 ],
                 actions: {
                     like: {spread: +10, rational: -15, empathy: 0},
-                    comment: {spread: +5, rational: +15, empathy: +10},
+                    comment: {spread: +5, rational: +5, empathy: +10}, // 已优化：理性+15→+5
                     skip: {spread: -10, rational: +20, empathy: 0},
                     report: {spread: 0, rational: +20, empathy: +10}
                 }
@@ -418,14 +429,14 @@
                 ],
                 actions: {
                     like: {spread: 0, rational: -20, empathy: -30},
-                    comment: {spread: +5, rational: +15, empathy: +20},
+                    comment: {spread: +5, rational: +5, empathy: +20}, // 已优化：理性+15→+5
                     skip: {spread: 0, rational: 0, empathy: -15},
                     report: {spread: 0, rational: +20, empathy: +25}
                 }
             }
         ];
 
-        // ===================== 结局数据 =====================
+        // ===================== 修复后的结局数据（已解决互斥问题）=====================
         const endings = [
             {
                 condition: () => rational > 80 && empathy > 80 && spread > 80,
@@ -433,8 +444,16 @@
                 content: "你不仅能准确辨别信息真伪，还能用自己的影响力传播正能量。你创建的“辟谣小分队”账号已经有了10万粉丝，帮助很多人避免了被谣言误导。",
                 slogan: "真正的数字化素养，不是拒绝互联网，而是在信息洪流中保持清醒的头脑，用技术向善，用责任发声。你就是这个时代最好的数字公民。"
             },
+            // 圣母心结局移到流量推手前面，避免被截胡
             {
-                condition: () => spread > 80 && rational < 40,
+                condition: () => empathy > 80 && rational < 60,
+                title: "💔 圣母心泛滥",
+                content: "你总是轻易相信别人的话，看到任何可怜的事情都会捐款转发。但你也因此多次被骗，甚至帮骗子传播了虚假信息。你的善意被别有用心的人利用了。",
+                slogan: "善良需要带锋芒，共情需要有边界。没有理性的善良，就是另一种形式的作恶。"
+            },
+            // 增加共情<60条件，和圣母心完全区分开
+            {
+                condition: () => spread > 80 && rational < 40 && empathy < 60,
                 title: "📱 流量推手",
                 content: "你成了一个小有名气的营销号博主，靠转发各种博眼球的内容获得了大量粉丝。但你也因为传播谣言被平台多次处罚，甚至收到了法院的传票。",
                 slogan: "流量从来都不是原罪，但没有底线的流量终会反噬自己。当你把点击量看得比真相还重要时，你已经成了谣言的帮凶。"
@@ -446,13 +465,7 @@
                 slogan: "沉默不是中立，而是对恶的纵容。在数字化时代，没有人能置身事外。你的一次沉默，可能就是压垮别人的最后一根稻草。"
             },
             {
-                condition: () => empathy > 80 && rational < 40,
-                title: "💔 圣母心泛滥",
-                content: "你总是轻易相信别人的话，看到任何可怜的事情都会捐款转发。但你也因此多次被骗，甚至帮骗子传播了虚假信息。你的善意被别有用心的人利用了。",
-                slogan: "善良需要带锋芒，共情需要有边界。没有理性的善良，就是另一种形式的作恶。"
-            },
-            {
-                condition: () => rational >= 40 && rational <= 60 && empathy >= 40 && empathy <= 60 && spread >= 40 && spread <= 60,
+                condition: () => true, // 兜底默认结局
                 title: "🚶 普通路人",
                 content: "你和大多数人一样，偶尔会转发一些正能量，偶尔也会被谣言误导。你没有做过什么大好事，但也没有做过什么大坏事。你只是信息洪流中一个普通的路人。",
                 slogan: "我们大多数人都是普通路人，但普通不代表无能为力。每一次理性的点击，每一次善意的评论，都在让这个世界变得更好一点。"
@@ -573,11 +586,29 @@
             document.getElementById('endingSlogan').textContent = matchedEnding.slogan;
         }
 
+        // 重新开始游戏
+        function restartGame() {
+            rational = 50;
+            empathy = 50;
+            spread = 50;
+            currentVideoIndex = 0;
+            isAnimating = false;
+            
+            const endingPage = document.getElementById('endingPage');
+            endingPage.classList.remove('show');
+            
+            setTimeout(() => {
+                endingPage.style.display = 'none';
+                document.getElementById('videoPage').style.display = 'block';
+                loadCurrentVideo();
+            }, 800);
+        }
+
         // ===================== 事件绑定 =====================
         document.getElementById('likeBtn').addEventListener('click', (e) => handleAction('like', e));
         document.getElementById('commentBtn').addEventListener('click', (e) => handleAction('comment', e));
-        document.getElementById('shareBtn').addEventListener('click', (e) => handleAction('skip', e));
         document.getElementById('reportBtn').addEventListener('click', (e) => handleAction('report', e));
+        document.getElementById('restartBtn').addEventListener('click', restartGame);
 
         // 滑动切换视频（向上滑动=划走，进入下一个视频）
         let startY = 0;
