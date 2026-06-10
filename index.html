@@ -24,12 +24,22 @@
             height: 100vh;
             position: relative;
         }
-        /* 视频区域 */
+        /* 视频容器 - 支持滑动动画 */
         .video-container {
             width: 100%;
             height: 100%;
-            position: relative;
+            position: absolute;
+            top: 0;
+            left: 0;
+            transition: transform 0.3s ease-out;
         }
+        .video-container.next {
+            transform: translateY(100%);
+        }
+        .video-container.prev {
+            transform: translateY(-100%);
+        }
+        /* 视频背景 */
         .video-bg {
             width: 100%;
             height: 100%;
@@ -42,12 +52,15 @@
             text-align: center;
             padding: 20px;
         }
-        /* 视频信息 */
+        /* 视频信息 - 入场动画 */
         .video-info {
             position: absolute;
             left: 15px;
             bottom: 120px;
             width: calc(100% - 90px);
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.5s ease-out 0.2s forwards;
         }
         .video-title {
             font-size: 16px;
@@ -59,7 +72,7 @@
             font-size: 14px;
             opacity: 0.8;
         }
-        /* 右侧按钮栏 */
+        /* 右侧按钮栏 - 逐个入场动画 */
         .btn-group {
             position: absolute;
             right: 15px;
@@ -73,19 +86,36 @@
         .action-btn {
             text-align: center;
             cursor: pointer;
-            transition: transform 0.2s;
+            opacity: 0;
+            transform: scale(0.8);
+            animation: scaleIn 0.3s ease-out forwards;
         }
+        .action-btn:nth-child(1) { animation-delay: 0.1s; }
+        .action-btn:nth-child(2) { animation-delay: 0.2s; }
+        .action-btn:nth-child(3) { animation-delay: 0.3s; }
+        .action-btn:nth-child(4) { animation-delay: 0.4s; }
+        /* 按钮点击回弹动画 */
         .action-btn:active {
             transform: scale(0.9);
+            transition: transform 0.1s ease;
         }
         .btn-icon {
             font-size: 32px;
             margin-bottom: 4px;
+            transition: all 0.2s ease;
         }
         .btn-text {
             font-size: 12px;
         }
-        /* 底部评论区预览 */
+        /* 点赞爱心爆炸特效 */
+        .like-heart {
+            position: absolute;
+            font-size: 80px;
+            color: #ff2442;
+            pointer-events: none;
+            animation: heartExplode 0.8s ease-out forwards;
+        }
+        /* 底部评论区 - 逐行淡入 */
         .comment-preview {
             position: absolute;
             left: 0;
@@ -98,13 +128,19 @@
             margin-bottom: 10px;
             font-size: 14px;
             line-height: 1.5;
+            opacity: 0;
+            transform: translateX(-10px);
+            animation: fadeInLeft 0.4s ease-out forwards;
         }
+        .comment-item:nth-child(1) { animation-delay: 0.5s; }
+        .comment-item:nth-child(2) { animation-delay: 0.6s; }
+        .comment-item:nth-child(3) { animation-delay: 0.7s; }
         .comment-name {
             color: #ffd166;
             margin-right: 8px;
             font-weight: 500;
         }
-        /* 结局页面 */
+        /* 结局页面 - 渐显动画 */
         .ending-page {
             position: absolute;
             top: 0;
@@ -118,22 +154,82 @@
             justify-content: center;
             padding: 40px 20px;
             text-align: center;
+            opacity: 0;
+            transition: opacity 0.8s ease-in-out;
+        }
+        .ending-page.show {
+            opacity: 1;
         }
         .ending-title {
             font-size: 28px;
             font-weight: bold;
             margin-bottom: 30px;
+            transform: translateY(20px);
+            opacity: 0;
+            animation: fadeInUp 0.6s ease-out 0.3s forwards;
         }
         .ending-content {
             font-size: 16px;
             line-height: 1.8;
             margin-bottom: 40px;
             max-width: 500px;
+            transform: translateY(20px);
+            opacity: 0;
+            animation: fadeInUp 0.6s ease-out 0.5s forwards;
         }
         .ending-slogan {
             font-size: 14px;
             opacity: 0.8;
             line-height: 1.6;
+            transform: translateY(20px);
+            opacity: 0;
+            animation: fadeInUp 0.6s ease-out 0.7s forwards;
+        }
+
+        /* 动画关键帧定义 */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        @keyframes fadeInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        @keyframes heartExplode {
+            0% {
+                opacity: 1;
+                transform: scale(0.5);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.2);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(1.5) translateY(-50px);
+            }
         }
     </style>
 </head>
@@ -182,13 +278,14 @@
     </div>
 
     <script>
-        // ===================== 核心变量（对应木疙瘩全局变量）=====================
+        // ===================== 核心变量 =====================
         let rational = 50;   // 理性值
         let empathy = 50;    // 共情值
         let spread = 50;     // 传播力
         let currentVideoIndex = 0; // 当前视频索引
+        let isAnimating = false; // 防止动画期间重复点击
 
-        // ===================== 8个视频事件数据（可直接修改）=====================
+        // ===================== 8个视频事件数据 =====================
         const videoEvents = [
             // 事件1：外卖偷餐谣言
             {
@@ -328,7 +425,7 @@
             }
         ];
 
-        // ===================== 结局数据（可直接修改）=====================
+        // ===================== 结局数据 =====================
         const endings = [
             {
                 condition: () => rational > 80 && empathy > 80 && spread > 80,
@@ -379,10 +476,43 @@
                 div.innerHTML = `<span class="comment-name">${comment.name}</span>${comment.content}`;
                 commentArea.appendChild(div);
             });
+
+            // 重置所有元素的动画
+            const videoInfo = document.querySelector('.video-info');
+            const buttons = document.querySelectorAll('.action-btn');
+            const comments = document.querySelectorAll('.comment-item');
+            
+            videoInfo.style.animation = 'none';
+            buttons.forEach(btn => btn.style.animation = 'none');
+            comments.forEach(cmt => cmt.style.animation = 'none');
+            
+            // 强制重绘后重新触发动画
+            void videoInfo.offsetWidth;
+            videoInfo.style.animation = '';
+            buttons.forEach(btn => btn.style.animation = '');
+            comments.forEach(cmt => cmt.style.animation = '');
+        }
+
+        // 点赞爱心爆炸特效
+        function createHeartEffect(x, y) {
+            const heart = document.createElement('div');
+            heart.className = 'like-heart';
+            heart.textContent = '❤️';
+            heart.style.left = x + 'px';
+            heart.style.top = y + 'px';
+            document.body.appendChild(heart);
+            
+            // 动画结束后移除元素
+            setTimeout(() => {
+                heart.remove();
+            }, 800);
         }
 
         // 处理按钮点击
-        function handleAction(actionType) {
+        function handleAction(actionType, event) {
+            if (isAnimating) return;
+            isAnimating = true;
+
             const action = videoEvents[currentVideoIndex].actions[actionType];
             
             // 更新属性值
@@ -394,20 +524,39 @@
             rational = Math.max(0, Math.min(100, rational));
             empathy = Math.max(0, Math.min(100, empathy));
             spread = Math.max(0, Math.min(100, spread));
-            
+
+            // 点赞时触发爱心特效
+            if (actionType === 'like' && event) {
+                createHeartEffect(event.clientX, event.clientY);
+            }
+
             // 切换到下一个视频或显示结局
             currentVideoIndex++;
             if (currentVideoIndex >= videoEvents.length) {
                 showEnding();
             } else {
-                loadCurrentVideo();
+                // 滑动切换动画
+                const currentPage = document.getElementById('videoPage');
+                currentPage.classList.add('prev');
+                
+                setTimeout(() => {
+                    loadCurrentVideo();
+                    currentPage.classList.remove('prev');
+                    isAnimating = false;
+                }, 300);
             }
         }
 
         // 显示结局
         function showEnding() {
             document.getElementById('videoPage').style.display = 'none';
-            document.getElementById('endingPage').style.display = 'flex';
+            const endingPage = document.getElementById('endingPage');
+            endingPage.style.display = 'flex';
+            
+            // 触发渐显动画
+            setTimeout(() => {
+                endingPage.classList.add('show');
+            }, 100);
             
             // 找到匹配的结局
             let matchedEnding = endings[4]; // 默认普通路人结局
@@ -425,10 +574,10 @@
         }
 
         // ===================== 事件绑定 =====================
-        document.getElementById('likeBtn').addEventListener('click', () => handleAction('like'));
-        document.getElementById('commentBtn').addEventListener('click', () => handleAction('comment'));
-        document.getElementById('shareBtn').addEventListener('click', () => handleAction('skip'));
-        document.getElementById('reportBtn').addEventListener('click', () => handleAction('report'));
+        document.getElementById('likeBtn').addEventListener('click', (e) => handleAction('like', e));
+        document.getElementById('commentBtn').addEventListener('click', (e) => handleAction('comment', e));
+        document.getElementById('shareBtn').addEventListener('click', (e) => handleAction('skip', e));
+        document.getElementById('reportBtn').addEventListener('click', (e) => handleAction('report', e));
 
         // 滑动切换视频（向上滑动=划走，进入下一个视频）
         let startY = 0;
@@ -439,8 +588,8 @@
             const endY = e.changedTouches[0].clientY;
             const diffY = startY - endY;
             // 向上滑动超过50px，触发划走
-            if (diffY > 50) {
-                handleAction('skip');
+            if (diffY > 50 && !isAnimating) {
+                handleAction('skip', null);
             }
         });
 
