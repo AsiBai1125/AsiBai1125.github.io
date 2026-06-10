@@ -2,62 +2,450 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <!-- 适配手机屏幕 -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>短视频界面</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>算法棱镜 - 数字公民养成记</title>
     <style>
-        *{margin:0;padding:0;box-sizing:border-box;}
-        body{background:#000;color:#fff;font-family:微软雅黑;}
-        /* 整体容器 手机竖屏 */
-        .video-box{width:100vw;height:100vh;position:relative;overflow:hidden;}
-        /* 视频主体区域 */
-        .video-main{width:100%;height:100%;background:#333;display:flex;align-items:center;justify-content:center;font-size:24px;opacity:0.8;}
-        /* 右侧功能按钮栏 */
-        .btn-group{position:absolute;right:15px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:25px;align-items:center;}
-        .btn{text-align:center;}
-        .btn-icon{font-size:28px;margin-bottom:5px;}
-        .btn-text{font-size:12px;}
-        /* 底部评论区 */
-        .comment-area{position:absolute;left:0;bottom:0;width:100%;padding:20px 15px 80px;background:linear-gradient(transparent,rgba(0,0,0,0.8));}
-        .comment-item{margin-bottom:12px;font-size:14px;line-height:1.5;}
-        .name{color:#ffd166;margin-right:8px;}
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            touch-action: pan-y;
+        }
+        body {
+            background: #000;
+            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            overflow: hidden;
+            height: 100vh;
+        }
+        /* 整体容器 */
+        .app {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+        /* 视频区域 */
+        .video-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        .video-bg {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            background: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            text-align: center;
+            padding: 20px;
+        }
+        /* 视频信息 */
+        .video-info {
+            position: absolute;
+            left: 15px;
+            bottom: 120px;
+            width: calc(100% - 90px);
+        }
+        .video-title {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+        .video-author {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        /* 右侧按钮栏 */
+        .btn-group {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            align-items: center;
+        }
+        .action-btn {
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .action-btn:active {
+            transform: scale(0.9);
+        }
+        .btn-icon {
+            font-size: 32px;
+            margin-bottom: 4px;
+        }
+        .btn-text {
+            font-size: 12px;
+        }
+        /* 底部评论区预览 */
+        .comment-preview {
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            padding: 20px 15px 40px;
+            background: linear-gradient(transparent, rgba(0,0,0,0.9));
+        }
+        .comment-item {
+            margin-bottom: 10px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .comment-name {
+            color: #ffd166;
+            margin-right: 8px;
+            font-weight: 500;
+        }
+        /* 结局页面 */
+        .ending-page {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .ending-title {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 30px;
+        }
+        .ending-content {
+            font-size: 16px;
+            line-height: 1.8;
+            margin-bottom: 40px;
+            max-width: 500px;
+        }
+        .ending-slogan {
+            font-size: 14px;
+            opacity: 0.8;
+            line-height: 1.6;
+        }
     </style>
 </head>
 <body>
-    <div class="video-box">
-        <!-- 视频画面区域 -->
-        <div class="video-main">
-            视频播放区域
+    <div class="app">
+        <!-- 视频播放页面 -->
+        <div class="video-container" id="videoPage">
+            <div class="video-bg" id="videoBg">
+                视频加载中...
+            </div>
+            
+            <div class="video-info">
+                <div class="video-title" id="videoTitle"></div>
+                <div class="video-author" id="videoAuthor"></div>
+            </div>
+            
+            <div class="btn-group">
+                <div class="action-btn" id="likeBtn">
+                    <div class="btn-icon">❤️</div>
+                    <div class="btn-text">点赞转发</div>
+                </div>
+                <div class="action-btn" id="commentBtn">
+                    <div class="btn-icon">💬</div>
+                    <div class="btn-text">评论</div>
+                </div>
+                <div class="action-btn" id="shareBtn">
+                    <div class="btn-icon">↪️</div>
+                    <div class="btn-text">划走</div>
+                </div>
+                <div class="action-btn" id="reportBtn">
+                    <div class="btn-icon">🚫</div>
+                    <div class="btn-text">举报</div>
+                </div>
+            </div>
+            
+            <div class="comment-preview" id="commentArea">
+            </div>
         </div>
-
-        <!-- 右侧四个按钮：点赞、评论、转发、举报 -->
-        <div class="btn-group">
-            <div class="btn">
-                <div class="btn-icon">❤️</div>
-                <div class="btn-text">点赞</div>
-            </div>
-            <div class="btn">
-                <div class="btn-icon">💬</div>
-                <div class="btn-text">评论</div>
-            </div>
-            <div class="btn">
-                <div class="btn-icon">↪️</div>
-                <div class="btn-text">转发</div>
-            </div>
-            <div class="btn">
-                <div class="btn-icon">🚫</div>
-                <div class="btn-text">举报</div>
-            </div>
-        </div>
-
-        <!-- 下方乐子人/串子风格评论区 -->
-        <div class="comment-area">
-            <div class="comment-item"><span class="name">吃瓜路人</span>：视频掐头去尾，懂的都懂，先蹲一手官方消息</div>
-            <div class="comment-item"><span class="name">快乐摆烂人</span>：评论区比视频有意思系列，今天乐到了😂</div>
-            <div class="comment-item"><span class="name">中立围观者</span>：不站队，单纯路过吃瓜</div>
-            <div class="comment-item"><span class="name">网络懂哥</span>：一眼看出剪辑痕迹，典型流量套路罢了</div>
-            <div class="comment-item"><span class="name">摸鱼选手</span>：前排占位，坐等后续反转</div>
+        
+        <!-- 结局页面 -->
+        <div class="ending-page" id="endingPage">
+            <div class="ending-title" id="endingTitle"></div>
+            <div class="ending-content" id="endingContent"></div>
+            <div class="ending-slogan" id="endingSlogan"></div>
         </div>
     </div>
+
+    <script>
+        // ===================== 核心变量（对应木疙瘩全局变量）=====================
+        let rational = 50;   // 理性值
+        let empathy = 50;    // 共情值
+        let spread = 50;     // 传播力
+        let currentVideoIndex = 0; // 当前视频索引
+
+        // ===================== 8个视频事件数据（可直接修改）=====================
+        const videoEvents = [
+            // 事件1：外卖偷餐谣言
+            {
+                title: "某大学女生偷外卖被抓，还把外卖员骂哭了！",
+                author: "校园爆料君",
+                bgText: "模糊监控画面：女生拿走外卖盒",
+                comments: [
+                    {name: "正义使者", content: "现在的大学生素质真差！"},
+                    {name: "吃瓜群众", content: "必须曝光她，让她社死！"},
+                    {name: "理性网友", content: "等一个完整视频再骂"}
+                ],
+                actions: {
+                    like: {spread: +15, rational: -10, empathy: 0},
+                    comment: {spread: +5, rational: +10, empathy: 0},
+                    skip: {spread: 0, rational: 0, empathy: 0},
+                    report: {spread: -5, rational: +20, empathy: 0}
+                }
+            },
+            // 事件2：贫困生用苹果手机
+            {
+                title: "拿着助学金买最新款苹果，真不要脸！",
+                author: "正能量博主",
+                bgText: "学生拿着苹果手机走在校园里",
+                comments: [
+                    {name: "愤怒的纳税人", content: "助学金就该取消！"},
+                    {name: "过来人", content: "也许是家人省吃俭用买的"},
+                    {name: "中立派", content: "不好说，别太早下结论"}
+                ],
+                actions: {
+                    like: {spread: +15, rational: 0, empathy: -15},
+                    comment: {spread: +5, rational: +5, empathy: +15},
+                    skip: {spread: 0, rational: 0, empathy: 0},
+                    report: {spread: 0, rational: +10, empathy: +10}
+                }
+            },
+            // 事件3：AI生成假新闻
+            {
+                title: "某地发生地震，已造成100人死亡！",
+                author: "突发新闻",
+                bgText: "地震现场画面（注意：手指畸形，AI生成痕迹明显）",
+                comments: [
+                    {name: "祈福者", content: "太可怕了，希望平安🙏"},
+                    {name: "AI识别专家", content: "这是AI生成的假新闻！"},
+                    {name: "谨慎网友", content: "等官方通报"}
+                ],
+                actions: {
+                    like: {spread: +20, rational: -20, empathy: 0},
+                    comment: {spread: +10, rational: +20, empathy: 0},
+                    skip: {spread: 0, rational: -5, empathy: 0},
+                    report: {spread: -5, rational: +25, empathy: 0}
+                }
+            },
+            // 事件4：校园霸凌视频
+            {
+                title: "帮我转发让她们火！校园霸凌零容忍！",
+                author: "正义曝光",
+                bgText: "几个女生围殴一个女生（未打码）",
+                comments: [
+                    {name: "暴怒网友", content: "必须人肉她们！"},
+                    {name: "法律爱好者", content: "请打码保护受害者，报警处理"},
+                    {name: "旁观者", content: "太可怕了，现在的孩子怎么了"}
+                ],
+                actions: {
+                    like: {spread: +20, rational: -10, empathy: +5},
+                    comment: {spread: +5, rational: +15, empathy: +15},
+                    skip: {spread: 0, rational: 0, empathy: -10},
+                    report: {spread: 0, rational: +10, empathy: +10}
+                }
+            },
+            // 事件5：算法歧视推送
+            {
+                title: "女生就该在家带孩子，读那么多书没用",
+                author: "传统价值观",
+                bgText: "家庭主妇做饭的画面",
+                comments: [
+                    {name: "传统派", content: "说得对，女人最终还是要回归家庭"},
+                    {name: "女权主义者", content: "这是赤裸裸的性别歧视！"},
+                    {name: "中立者", content: "每个人都有选择自己生活的权利"}
+                ],
+                actions: {
+                    like: {spread: +10, rational: -15, empathy: 0},
+                    comment: {spread: +5, rational: +15, empathy: +10},
+                    skip: {spread: -10, rational: +20, empathy: 0},
+                    report: {spread: 0, rational: +20, empathy: +10}
+                }
+            },
+            // 事件6：正能量志愿者视频
+            {
+                title: "大学生志愿者在灾区帮助受灾群众",
+                author: "青春正能量",
+                bgText: "志愿者们搬运物资、帮助老人的画面",
+                comments: [
+                    {name: "点赞党", content: "这才是中国青年该有的样子！"},
+                    {name: "感动者", content: "看哭了，向他们学习"},
+                    {name: "质疑者", content: "摆拍吧？"}
+                ],
+                actions: {
+                    like: {spread: +15, rational: 0, empathy: +10},
+                    comment: {spread: +5, rational: 0, empathy: +15},
+                    skip: {spread: 0, rational: 0, empathy: -5},
+                    report: {spread: 0, rational: 0, empathy: 0}
+                }
+            },
+            // 事件7：标题党营销号
+            {
+                title: "震惊！喝白开水会致癌！99%的人都不知道！",
+                author: "健康养生专家",
+                bgText: "一杯白开水的特写",
+                comments: [
+                    {name: "恐慌者", content: "完了，我天天喝白开水"},
+                    {name: "科普达人", content: "这是谣言，毫无科学依据"},
+                    {name: "理性人", content: "营销号为了流量什么都敢说"}
+                ],
+                actions: {
+                    like: {spread: +10, rational: -15, empathy: 0},
+                    comment: {spread: +5, rational: +15, empathy: 0},
+                    skip: {spread: 0, rational: -5, empathy: 0},
+                    report: {spread: -5, rational: +20, empathy: 0}
+                }
+            },
+            // 事件8：被网暴者自杀新闻
+            {
+                title: "之前被网暴的偷外卖女生自杀未遂，正在抢救",
+                author: "深度报道",
+                bgText: "医院大门的画面",
+                comments: [
+                    {name: "冷漠者", content: "活该，谁让她偷外卖"},
+                    {name: "反思者", content: "网络暴力杀人不眨眼啊"},
+                    {name: "道歉者", content: "对不起，我之前也骂过她"}
+                ],
+                actions: {
+                    like: {spread: 0, rational: -20, empathy: -30},
+                    comment: {spread: +5, rational: +15, empathy: +20},
+                    skip: {spread: 0, rational: 0, empathy: -15},
+                    report: {spread: 0, rational: +20, empathy: +25}
+                }
+            }
+        ];
+
+        // ===================== 结局数据（可直接修改）=====================
+        const endings = [
+            {
+                condition: () => rational > 80 && empathy > 80 && spread > 80,
+                title: "🌟 数字公民",
+                content: "你不仅能准确辨别信息真伪，还能用自己的影响力传播正能量。你创建的“辟谣小分队”账号已经有了10万粉丝，帮助很多人避免了被谣言误导。",
+                slogan: "真正的数字化素养，不是拒绝互联网，而是在信息洪流中保持清醒的头脑，用技术向善，用责任发声。你就是这个时代最好的数字公民。"
+            },
+            {
+                condition: () => spread > 80 && rational < 40,
+                title: "📱 流量推手",
+                content: "你成了一个小有名气的营销号博主，靠转发各种博眼球的内容获得了大量粉丝。但你也因为传播谣言被平台多次处罚，甚至收到了法院的传票。",
+                slogan: "流量从来都不是原罪，但没有底线的流量终会反噬自己。当你把点击量看得比真相还重要时，你已经成了谣言的帮凶。"
+            },
+            {
+                condition: () => rational > 80 && empathy < 40,
+                title: "😐 冷漠旁观者",
+                content: "你能一眼看穿所有的谣言和套路，但你从来不会发声。你觉得“事不关己高高挂起”是最好的生存法则。但当有一天，谣言落到你自己头上时，你才发现，没有人为你说话。",
+                slogan: "沉默不是中立，而是对恶的纵容。在数字化时代，没有人能置身事外。你的一次沉默，可能就是压垮别人的最后一根稻草。"
+            },
+            {
+                condition: () => empathy > 80 && rational < 40,
+                title: "💔 圣母心泛滥",
+                content: "你总是轻易相信别人的话，看到任何可怜的事情都会捐款转发。但你也因此多次被骗，甚至帮骗子传播了虚假信息。你的善意被别有用心的人利用了。",
+                slogan: "善良需要带锋芒，共情需要有边界。没有理性的善良，就是另一种形式的作恶。"
+            },
+            {
+                condition: () => rational >= 40 && rational <= 60 && empathy >= 40 && empathy <= 60 && spread >= 40 && spread <= 60,
+                title: "🚶 普通路人",
+                content: "你和大多数人一样，偶尔会转发一些正能量，偶尔也会被谣言误导。你没有做过什么大好事，但也没有做过什么大坏事。你只是信息洪流中一个普通的路人。",
+                slogan: "我们大多数人都是普通路人，但普通不代表无能为力。每一次理性的点击，每一次善意的评论，都在让这个世界变得更好一点。"
+            }
+        ];
+
+        // ===================== 核心功能函数 =====================
+        // 加载当前视频
+        function loadCurrentVideo() {
+            const video = videoEvents[currentVideoIndex];
+            document.getElementById('videoTitle').textContent = video.title;
+            document.getElementById('videoAuthor').textContent = '@' + video.author;
+            document.getElementById('videoBg').textContent = video.bgText;
+            
+            // 加载评论区
+            const commentArea = document.getElementById('commentArea');
+            commentArea.innerHTML = '';
+            video.comments.forEach(comment => {
+                const div = document.createElement('div');
+                div.className = 'comment-item';
+                div.innerHTML = `<span class="comment-name">${comment.name}</span>${comment.content}`;
+                commentArea.appendChild(div);
+            });
+        }
+
+        // 处理按钮点击
+        function handleAction(actionType) {
+            const action = videoEvents[currentVideoIndex].actions[actionType];
+            
+            // 更新属性值
+            rational += action.rational;
+            empathy += action.empathy;
+            spread += action.spread;
+            
+            // 限制数值在0-100之间
+            rational = Math.max(0, Math.min(100, rational));
+            empathy = Math.max(0, Math.min(100, empathy));
+            spread = Math.max(0, Math.min(100, spread));
+            
+            // 切换到下一个视频或显示结局
+            currentVideoIndex++;
+            if (currentVideoIndex >= videoEvents.length) {
+                showEnding();
+            } else {
+                loadCurrentVideo();
+            }
+        }
+
+        // 显示结局
+        function showEnding() {
+            document.getElementById('videoPage').style.display = 'none';
+            document.getElementById('endingPage').style.display = 'flex';
+            
+            // 找到匹配的结局
+            let matchedEnding = endings[4]; // 默认普通路人结局
+            for (const ending of endings) {
+                if (ending.condition()) {
+                    matchedEnding = ending;
+                    break;
+                }
+            }
+            
+            // 显示结局内容
+            document.getElementById('endingTitle').textContent = matchedEnding.title;
+            document.getElementById('endingContent').textContent = matchedEnding.content;
+            document.getElementById('endingSlogan').textContent = matchedEnding.slogan;
+        }
+
+        // ===================== 事件绑定 =====================
+        document.getElementById('likeBtn').addEventListener('click', () => handleAction('like'));
+        document.getElementById('commentBtn').addEventListener('click', () => handleAction('comment'));
+        document.getElementById('shareBtn').addEventListener('click', () => handleAction('skip'));
+        document.getElementById('reportBtn').addEventListener('click', () => handleAction('report'));
+
+        // 滑动切换视频（向上滑动=划走，进入下一个视频）
+        let startY = 0;
+        document.addEventListener('touchstart', (e) => {
+            startY = e.touches[0].clientY;
+        });
+        document.addEventListener('touchend', (e) => {
+            const endY = e.changedTouches[0].clientY;
+            const diffY = startY - endY;
+            // 向上滑动超过50px，触发划走
+            if (diffY > 50) {
+                handleAction('skip');
+            }
+        });
+
+        // 初始化加载第一个视频
+        loadCurrentVideo();
+    </script>
 </body>
 </html>
