@@ -567,10 +567,8 @@
 
       // 结果页按钮
       restartBtn.addEventListener('click', resetGame);
-    continueBtn.addEventListener('click', () => {
-  console.log('已发送跳转消息，身份：', resultIdentity.textContent);
-  window.parent.postMessage({ action: 'nextPage', result: resultIdentity.textContent }, '*');
-});
+      continueBtn.addEventListener('click', () => {
+        window.parent.postMessage({ action: 'nextPage', result: resultIdentity.textContent }, '*');
       });
 
       // 初始化
