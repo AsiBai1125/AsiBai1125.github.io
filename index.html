@@ -5,256 +5,91 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>算法棱镜 - 数字公民养成记</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            background: #000;
-            color: #fff;
+            background: #000; color: #fff;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            overflow: hidden;
-            height: 100vh;
-            touch-action: none; /* 禁止浏览器默认手势 */
+            overflow: hidden; height: 100vh; touch-action: none;
         }
-        .app {
-            width: 100vw;
-            height: 100vh;
-            position: relative;
-        }
-        .viewport {
-            width: 100%;
-            height: 100%;
-            position: relative;
-            overflow: hidden;
-        }
-        .slides-wrapper {
-            width: 100%;
-            height: 100%;
-            position: relative;
-            will-change: transform;
-        }
+        .app { width: 100vw; height: 100vh; position: relative; }
+        .viewport { width: 100%; height: 100%; position: relative; overflow: hidden; }
+        .slides-wrapper { width: 100%; height: 100%; position: relative; will-change: transform; }
         .slide {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            background: #1a1a2e;
-            padding: 20px;
-            overflow: hidden;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            background: #1a1a2e; padding: 20px; overflow: hidden;
         }
         .slide-bg {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            background: #16213e;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            text-align: center;
-            padding: 20px;
-            color: #eee;
-            position: absolute;
-            top: 0;
-            left: 0;
+            width: 100%; height: 100%; object-fit: cover; background: #16213e;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px; text-align: center; padding: 20px; color: #eee;
+            position: absolute; top: 0; left: 0;
         }
         .video-info {
-            position: absolute;
-            left: 20px;
-            bottom: 160px;
-            width: calc(100% - 100px);
-            z-index: 2;
-            text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+            position: absolute; left: 20px; bottom: 160px; width: calc(100% - 100px);
+            z-index: 2; text-shadow: 0 2px 8px rgba(0,0,0,0.8);
         }
-        .video-title {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 6px;
-            line-height: 1.4;
-        }
-        .video-author {
-            font-size: 14px;
-            opacity: 0.8;
-            margin-bottom: 10px;
-        }
-        .video-content {
-            font-size: 14px;
-            opacity: 0.9;
-            line-height: 1.5;
-            max-height: 60px;
-            overflow: hidden;
-        }
+        .video-title { font-size: 18px; font-weight: 600; margin-bottom: 6px; line-height: 1.4; }
+        .video-author { font-size: 14px; opacity: 0.8; margin-bottom: 10px; }
+        .video-content { font-size: 14px; opacity: 0.9; line-height: 1.5; max-height: 60px; overflow: hidden; }
         .comments {
-            position: absolute;
-            left: 20px;
-            bottom: 40px;
-            width: calc(100% - 100px);
-            z-index: 2;
-            background: linear-gradient(transparent, rgba(0,0,0,0.8));
-            padding: 20px 15px 25px;
-            border-radius: 12px;
+            position: absolute; left: 20px; bottom: 40px; width: calc(100% - 100px);
+            z-index: 2; background: linear-gradient(transparent, rgba(0,0,0,0.8));
+            padding: 20px 15px 25px; border-radius: 12px;
         }
         .comment-item {
-            margin-bottom: 8px;
-            font-size: 13px;
-            line-height: 1.4;
-            opacity: 0;
-            transform: translateX(-10px);
+            margin-bottom: 8px; font-size: 13px; line-height: 1.4;
+            opacity: 0; transform: translateX(-10px);
             animation: fadeInLeft 0.4s ease-out forwards;
         }
         .comment-item:nth-child(1) { animation-delay: 0.5s; }
         .comment-item:nth-child(2) { animation-delay: 0.7s; }
         .comment-item:nth-child(3) { animation-delay: 0.9s; }
-        .comment-name {
-            color: #ffd166;
-            margin-right: 6px;
-            font-weight: 500;
-        }
-        @keyframes fadeInLeft {
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
+        .comment-name { color: #ffd166; margin-right: 6px; font-weight: 500; }
+        @keyframes fadeInLeft { to { opacity: 1; transform: translateX(0); } }
         .btn-group {
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            display: flex;
-            flex-direction: column;
-            gap: 35px;
-            align-items: center;
-            z-index: 10;
+            position: absolute; right: 15px; top: 50%; transform: translateY(-50%);
+            display: flex; flex-direction: column; gap: 35px; align-items: center; z-index: 10;
         }
         .action-btn {
-            text-align: center;
-            cursor: pointer;
-            opacity: 0;
-            transform: scale(0.8);
-            animation: scaleIn 0.3s ease-out forwards;
-            transition: transform 0.1s ease;
+            text-align: center; cursor: pointer; opacity: 0; transform: scale(0.8);
+            animation: scaleIn 0.3s ease-out forwards; transition: transform 0.1s ease;
             user-select: none;
         }
-        .action-btn:active {
-            transform: scale(0.9) !important;
-        }
+        .action-btn:active { transform: scale(0.9) !important; }
         .action-btn:nth-child(1) { animation-delay: 0.1s; }
         .action-btn:nth-child(2) { animation-delay: 0.2s; }
         .action-btn:nth-child(3) { animation-delay: 0.3s; }
-        @keyframes scaleIn {
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
-        .btn-icon {
-            font-size: 36px;
-            margin-bottom: 4px;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
-        }
-        .btn-text {
-            font-size: 12px;
-            font-weight: 500;
-        }
+        @keyframes scaleIn { to { opacity: 1; transform: scale(1); } }
+        .btn-icon { font-size: 36px; margin-bottom: 4px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); }
+        .btn-text { font-size: 12px; font-weight: 500; }
         .like-heart {
-            position: fixed;
-            font-size: 80px;
-            color: #ff2442;
-            pointer-events: none;
-            z-index: 100;
+            position: fixed; font-size: 80px; color: #ff2442;
+            pointer-events: none; z-index: 100;
             animation: heartExplode 0.8s ease-out forwards;
         }
         @keyframes heartExplode {
-            0% {
-                opacity: 1;
-                transform: translate(-50%, -50%) scale(0.5);
-            }
-            50% {
-                opacity: 1;
-                transform: translate(-50%, -150%) scale(1.2);
-            }
-            100% {
-                opacity: 0;
-                transform: translate(-50%, -250%) scale(1);
-            }
+            0% { opacity: 1; transform: translate(-50%, -50%) scale(0.5); }
+            50% { opacity: 1; transform: translate(-50%, -150%) scale(1.2); }
+            100% { opacity: 0; transform: translate(-50%, -250%) scale(1); }
         }
         .ending-page {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #000;
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 40px 20px;
-            text-align: center;
-            z-index: 200;
-            opacity: 0;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; display: none; flex-direction: column;
+            align-items: center; justify-content: center; padding: 40px 20px;
+            text-align: center; z-index: 200; opacity: 0;
             transition: opacity 0.8s ease-in-out;
         }
-        .ending-page.show {
-            display: flex;
-            opacity: 1;
-        }
-        .ending-title {
-            font-size: 30px;
-            font-weight: bold;
-            margin-bottom: 30px;
-            transform: translateY(20px);
-            opacity: 0;
-            animation: fadeInUp 0.6s ease-out 0.3s forwards;
-        }
-        .ending-content {
-            font-size: 18px;
-            line-height: 1.8;
-            margin-bottom: 40px;
-            max-width: 500px;
-            transform: translateY(20px);
-            opacity: 0;
-            animation: fadeInUp 0.6s ease-out 0.5s forwards;
-        }
-        .ending-slogan {
-            font-size: 15px;
-            opacity: 0.8;
-            line-height: 1.6;
-            margin-bottom: 30px;
-            transform: translateY(20px);
-            animation: fadeInUp 0.6s ease-out 0.7s forwards;
-        }
+        .ending-page.show { display: flex; opacity: 1; }
+        .ending-title { font-size: 30px; font-weight: bold; margin-bottom: 30px; }
+        .ending-content { font-size: 18px; line-height: 1.8; margin-bottom: 40px; max-width: 500px; }
+        .ending-slogan { font-size: 15px; opacity: 0.8; line-height: 1.6; margin-bottom: 30px; }
         .restart-btn {
-            background: #ffd166;
-            color: #000;
-            border: none;
-            padding: 14px 40px;
-            border-radius: 30px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
+            background: #ffd166; color: #000; border: none; padding: 14px 40px;
+            border-radius: 30px; font-size: 18px; font-weight: bold; cursor: pointer;
             transition: background 0.2s;
-            transform: translateY(20px);
-            opacity: 0;
-            animation: fadeInUp 0.6s ease-out 0.9s forwards;
         }
-        .restart-btn:active {
-            background: #ffc233;
-        }
-        @keyframes fadeInUp {
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
+        .restart-btn:active { background: #ffc233; }
     </style>
 </head>
 <body>
@@ -306,7 +141,6 @@
 
     <script>
         (function() {
-            // ========== 修正后数值（第5条划走已调整） ==========
             const videos = [
                 {
                     title: '某大学女生偷外卖被抓，还把外卖员骂哭了！',
@@ -384,7 +218,6 @@
                     actions: {
                         like: { rationality: -15, empathy: 0, spread: 10 },
                         comment: { rationality: 5, empathy: 15, spread: 5 },
-                        // ⚠️ 原划走为理性+20、共情0，此处修正以保证“全部划走”能触发冷漠旁观者
                         skip: { rationality: -5, empathy: -5, spread: -10 },
                         report: { rationality: 20, empathy: 10, spread: 0 }
                     }
@@ -440,31 +273,31 @@
             ];
 
             const endings = [
-                { // 0: 数字公民
+                {
                     condition: (s) => s.rationality > 80 && s.empathy > 80 && s.spread > 80,
                     title: '🌟 数字公民',
                     content: '你不仅能准确辨别信息真伪，还能用自己的影响力传播正能量。你创建的“辟谣小分队”账号已经有了10万粉丝，帮助很多人避免了被谣言误导。',
                     slogan: '真正的数字化素养，不是拒绝互联网，而是在信息洪流中保持清醒的头脑，用技术向善，用责任发声。你就是这个时代最好的数字公民。'
                 },
-                { // 1: 圣母心泛滥
+                {
                     condition: (s) => s.empathy > 80 && s.rationality < 60,
                     title: '💔 圣母心泛滥',
                     content: '你总是轻易相信别人的话，看到任何可怜的事情都会捐款转发。但你也因此多次被骗，甚至帮骗子传播了虚假信息。你的善意被别有用心的人利用了。',
                     slogan: '善良需要带锋芒，共情需要有边界。没有理性的善良，就是另一种形式的作恶。'
                 },
-                { // 2: 流量推手
+                {
                     condition: (s) => s.spread > 80 && s.rationality < 40 && s.empathy < 60,
                     title: '📱 流量推手',
                     content: '你成了一个小有名气的营销号博主，靠转发各种博眼球的内容获得了大量粉丝。但你也因为传播谣言被平台多次处罚，甚至收到了法院的传票。',
                     slogan: '流量从来都不是原罪，但没有底线的流量终会反噬自己。当你把点击量看得比真相还重要时，你已经成了谣言的帮凶。'
                 },
-                { // 3: 冷漠旁观者
+                {
                     condition: (s) => s.rationality < 60 && s.empathy < 40,
                     title: '😐 冷漠旁观者',
                     content: '你能一眼看穿所有的谣言和套路，但你从来不会发声。你觉得“事不关己高高挂起”是最好的生存法则。但当有一天，谣言落到你自己头上时，你才发现，没有人为你说话。',
                     slogan: '沉默不是中立，而是对恶的纵容。在数字化时代，没有人能置身事外。你的一次沉默，可能就是压垮别人的最后一根稻草。'
                 },
-                { // 4: 普通路人 (兜底)
+                {
                     condition: () => true,
                     title: '🚶 普通路人',
                     content: '你和大多数人一样，偶尔会转发一些正能量，偶尔也会被谣言误导。你没有做过什么大好事，但也没有做过什么大坏事。你只是信息洪流中一个普通的路人。',
@@ -472,9 +305,9 @@
                 }
             ];
 
-            // ========== 状态管理 ==========
             let stats = { rationality: 50, empathy: 50, spread: 50 };
             let currentIndex = 0;
+            let currentVideoInteracted = false; // 标记当前视频是否已通过按钮交互
             let isAnimating = false;
             let currentSlideDom = document.getElementById('slideA');
             let nextSlideDom = document.getElementById('slideB');
@@ -483,20 +316,21 @@
             const endingPage = document.getElementById('endingPage');
             const app = document.getElementById('app');
 
-            // 辅助函数：限制数值范围
             function clamp(value) {
                 return Math.max(0, Math.min(100, value));
             }
 
             function applyAction(actionType) {
                 const video = videos[currentIndex];
+                if (!video) return;
                 const delta = video.actions[actionType];
                 stats.rationality = clamp(stats.rationality + delta.rationality);
                 stats.empathy = clamp(stats.empathy + delta.empathy);
                 stats.spread = clamp(stats.spread + delta.spread);
+                currentVideoInteracted = true; // 标记已交互
+                console.log(`[第${currentIndex+1}条] 操作: ${actionType}, 当前数值:`, stats);
             }
 
-            // 更新slide内容
             function updateSlideContent(slideDom, videoData) {
                 if (!videoData) {
                     slideDom.querySelector('.slide-bg').textContent = '没有更多视频';
@@ -516,7 +350,6 @@
                 slideDom.querySelector('.comments').innerHTML = commentsHtml;
             }
 
-            // 初始化第一个和第二个slide
             function initSlides() {
                 updateSlideContent(currentSlideDom, videos[0]);
                 if (videos.length > 1) {
@@ -530,47 +363,47 @@
                 slidesWrapper.style.transform = 'translateY(0)';
                 currentIndex = 0;
                 stats = { rationality: 50, empathy: 50, spread: 50 };
+                currentVideoInteracted = false;
                 isAnimating = false;
                 btnGroup.style.display = 'flex';
                 endingPage.classList.remove('show');
                 app.style.display = 'block';
             }
 
-            // 切换下一个视频
             function goToNextVideo(fromSwipe = false) {
                 if (isAnimating) return;
+
+                // 如果当前视频未通过按钮交互，则视为“划走”，应用skip数值
+                if (!currentVideoInteracted && currentIndex < videos.length) {
+                    applyAction('skip');
+                }
+
                 if (currentIndex >= videos.length - 1) {
-                    // 已经是最后一个视频，再划走触发结局
-                    if (fromSwipe || currentIndex === videos.length - 1) {
-                        showEnding();
-                    }
+                    // 已经是最后一条，直接显示结局
+                    showEnding();
                     return;
                 }
+
                 isAnimating = true;
-                // 执行切换动画
                 slidesWrapper.style.transition = 'transform 0.3s ease-out';
                 slidesWrapper.style.transform = 'translateY(-100%)';
 
                 const onTransitionEnd = () => {
                     slidesWrapper.removeEventListener('transitionend', onTransitionEnd);
-                    // 交换slide引用
                     [currentSlideDom, nextSlideDom] = [nextSlideDom, currentSlideDom];
                     currentIndex++;
-                    // 重置wrapper位置
+                    currentVideoInteracted = false; // 新视频重置交互状态
                     slidesWrapper.style.transition = 'none';
                     slidesWrapper.style.transform = 'translateY(0)';
-                    // 更新新的nextSlide为下一个视频
                     const nextVideo = videos[currentIndex + 1] || null;
                     updateSlideContent(nextSlideDom, nextVideo);
                     nextSlideDom.style.top = '100%';
                     currentSlideDom.style.top = '0';
                     isAnimating = false;
-                    // 如果新当前视频是最后一个，且没有下一个视频，无需操作
                 };
                 slidesWrapper.addEventListener('transitionend', onTransitionEnd, { once: true });
             }
 
-            // 拖拽与手势处理
             let startY = 0;
             let dragging = false;
             let startTransform = 0;
@@ -579,7 +412,6 @@
                 if (isAnimating) return;
                 dragging = true;
                 startY = y;
-                // 获取当前translateY
                 const style = window.getComputedStyle(slidesWrapper);
                 const matrix = new DOMMatrixReadOnly(style.transform);
                 startTransform = matrix.m42;
@@ -589,16 +421,13 @@
             function onMove(y) {
                 if (!dragging) return;
                 const diff = y - startY;
-                // 限制：不能向下拖（diff > 0 表示向下，我们只允许向上拖 diff < 0）
-                // 但为了体验，允许稍向下，松手时弹回
                 let newY = startTransform + diff;
-                // 如果当前是最后一个视频，不允许向上超过 -100% (看到下一个空slide)
                 if (currentIndex >= videos.length - 1 && newY < 0) {
-                    newY = Math.max(newY, -60); // 最多上拉一点，松手回弹
+                    newY = Math.max(newY, -60);
                 } else if (currentIndex < videos.length - 1 && newY < -100) {
-                    newY = -100; // 最多到下一个视频完全显示
+                    newY = -100;
                 }
-                if (newY > 0) newY = 0; // 禁止向下拖拽超过0
+                if (newY > 0) newY = 0;
                 slidesWrapper.style.transform = `translateY(${newY}px)`;
             }
 
@@ -606,23 +435,24 @@
                 if (!dragging) return;
                 dragging = false;
                 const diff = y - startY;
-                const threshold = 50;
                 slidesWrapper.style.transition = 'transform 0.3s ease-out';
-                if (diff < -threshold && currentIndex < videos.length - 1) {
-                    // 向上划，切换下一个
-                    goToNextVideo(true);
-                } else if (diff > threshold) {
-                    // 向下划，回弹（不支持回退）
+
+                // 最后一条视频轻微上拖（≥15px）即触发结局
+                if (diff < -15 && currentIndex >= videos.length - 1) {
                     slidesWrapper.style.transform = 'translateY(0)';
-                } else if (diff < -threshold && currentIndex >= videos.length - 1) {
-                    // 最后一个视频向上划，触发结局
-                    slidesWrapper.style.transform = 'translateY(0)';
+                    // 应用skip数值（如果之前没交互过）
+                    if (!currentVideoInteracted) {
+                        applyAction('skip');
+                    }
                     showEnding();
+                } else if (diff < -50 && currentIndex < videos.length - 1) {
+                    // 正常切换，goToNextVideo 会处理 skip 应用
+                    goToNextVideo(true);
                 } else {
                     // 回弹
                     slidesWrapper.style.transform = 'translateY(0)';
                 }
-                // 防止后续误触
+
                 setTimeout(() => {
                     if (!isAnimating) {
                         slidesWrapper.style.transition = 'none';
@@ -648,7 +478,7 @@
             }, { passive: true });
             slidesWrapper.addEventListener('touchmove', (e) => {
                 if (dragging) {
-                    e.preventDefault(); // 阻止页面滚动
+                    e.preventDefault();
                     onMove(e.touches[0].clientY);
                 }
             }, { passive: false });
@@ -656,15 +486,18 @@
                 if (dragging) onEnd(e.changedTouches[0].clientY);
             });
 
-            // 滚轮事件（鼠标滚轮上滚切换下一个）
+            // 滚轮事件
             window.addEventListener('wheel', (e) => {
                 if (isAnimating || dragging) return;
                 if (e.deltaY < 0) {
-                    // 向上滚动
                     e.preventDefault();
                     if (currentIndex < videos.length - 1) {
                         goToNextVideo();
                     } else {
+                        // 最后一条滚轮上滚也要应用skip
+                        if (!currentVideoInteracted) {
+                            applyAction('skip');
+                        }
                         showEnding();
                     }
                 }
@@ -678,17 +511,19 @@
                     if (currentIndex < videos.length - 1) {
                         goToNextVideo();
                     } else {
+                        if (!currentVideoInteracted) {
+                            applyAction('skip');
+                        }
                         showEnding();
                     }
                 }
             });
 
-            // 按钮点击处理
+            // 按钮点击
             document.querySelectorAll('.action-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     if (isAnimating || dragging) return;
                     const action = btn.dataset.action;
-                    // 特殊：点赞爱心特效
                     if (action === 'like') {
                         const heart = document.createElement('div');
                         heart.className = 'like-heart';
@@ -698,38 +533,36 @@
                         document.body.appendChild(heart);
                         heart.addEventListener('animationend', () => heart.remove());
                     }
-                    // 应用数值
+                    // 应用按钮对应的数值（内部会设置 currentVideoInteracted = true）
                     applyAction(action);
-                    // 切换下一条
+                    // 自动切换到下一条视频（或结局）
                     if (currentIndex < videos.length - 1) {
                         goToNextVideo();
                     } else {
-                        // 最后一条视频操作完直接结局
                         showEnding();
                     }
                 });
             });
 
-            // 结局判断与展示
             function showEnding() {
                 if (isAnimating) return;
                 isAnimating = true;
                 btnGroup.style.display = 'none';
-                // 判断结局
-                let ending = endings.find(e => e.condition(stats));
+                console.log('最终数值:', stats);
+                const ending = endings.find(e => e.condition(stats));
+                console.log('触发结局:', ending.title);
                 document.getElementById('endingTitle').textContent = ending.title;
                 document.getElementById('endingContent').textContent = ending.content;
                 document.getElementById('endingSlogan').textContent = ending.slogan;
                 endingPage.classList.add('show');
                 app.style.display = 'none';
-                // 重置动画锁定
                 setTimeout(() => { isAnimating = false; }, 1000);
             }
 
-            // 重新开始
             document.getElementById('restartBtn').addEventListener('click', () => {
                 stats = { rationality: 50, empathy: 50, spread: 50 };
                 currentIndex = 0;
+                currentVideoInteracted = false;
                 currentSlideDom = document.getElementById('slideA');
                 nextSlideDom = document.getElementById('slideB');
                 updateSlideContent(currentSlideDom, videos[0]);
@@ -744,7 +577,6 @@
                 btnGroup.style.display = 'flex';
             });
 
-            // 启动
             initSlides();
         })();
     </script>
