@@ -567,9 +567,10 @@
 
       // 结果页按钮
       restartBtn.addEventListener('click', resetGame);
-      continueBtn.addEventListener('click', () => {
-        window.parent.postMessage({ action: 'nextPage', result: resultIdentity.textContent }, '*');
-        alert('已发送跳转指令，请确认外层H5已监听。\n若未反应，请检查父页面代码。');
+    continueBtn.addEventListener('click', () => {
+  console.log('已发送跳转消息，身份：', resultIdentity.textContent);
+  window.parent.postMessage({ action: 'nextPage', result: resultIdentity.textContent }, '*');
+});
       });
 
       // 初始化
